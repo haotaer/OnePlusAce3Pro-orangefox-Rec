@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/twrp_OnePlusAce3Pro.mk
+    $(LOCAL_DIR)/twrp_corvette.mk
 
 COMMON_LUNCH_CHOICES := \
-    twrp_OnePlusAce3Pro-eng
+    twrp_corvette-eng

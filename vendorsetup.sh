@@ -23,7 +23,7 @@
  	#OFR build settings & info
 	export FOX_VANILLA_BUILD=1
 export FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER=1
-export TARGET_DEVICE_ALT="OnePlusAce3Pro"
+export TARGET_DEVICE_ALT="corvette"
 export FOX_RECOVERY_SYSTEM_PARTITION="/dev/block/mapper/system"
 export FOX_RECOVERY_VENDOR_PARTITION="/dev/block/mapper/vendor"
 export FOX_DELETE_INITD_ADDON=1
