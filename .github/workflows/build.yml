@@ -54,18 +54,24 @@ jobs:
           cd ~/OrangeFox/fox_12.1
           # 克隆设备树
           git clone https://github.com/haotaer/OnePlusAce3Pro-orangefox-Rec.git device/oneplus/corvette
-          # 修复1：创建缺失的 vendorsetup.sh（添加编译项）
+          # 修复 vendorsetup.sh：移除过时函数，只保留必要的编译变量
           cat > device/oneplus/corvette/vendorsetup.sh << EOF
           # 定义橙狐编译变量
           export FOX_BUILD_DEVICE="corvette"
           export OF_FORCE_PREBUILT_KERNEL=1
-          # 添加编译午餐组合
-          add_lunch_combo orangefox_corvette-eng
           EOF
-          # 修复2：修正 AndroidProducts.mk 中的 mk 文件名（仓库中是 twrp_corvette.mk）
-          sed -i 's/corvette.mk/twrp_corvette.mk/' device/oneplus/corvette/AndroidProducts.mk
+          # 修复 AndroidProducts.mk：修正产品文件路径，匹配仓库中的 twrp_corvette.mk
+          cat > device/oneplus/corvette/AndroidProducts.mk << EOF
+          # Copyright (C) 2024 The Android Open Source Project
+          # SPDX-License-Identifier: Apache-2.0
+          PRODUCT_MAKEFILES := \
+              \$(LOCAL_DIR)/twrp_corvette.mk
+          COMMON_LUNCH_CHOICES := \
+              orangefox_corvette-eng
+          EOF
           # 检查修复结果
           ls -l device/oneplus/corvette/
+          cat device/oneplus/corvette/vendorsetup.sh
           cat device/oneplus/corvette/AndroidProducts.mk
 
       - name: 7. 开始编译 OrangeFox Recovery
@@ -80,7 +86,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: OrangeFox-corvette-${{ github.run_id }}
+          name: OrangeFox-corvette-\${{ github.run_id }}
           path: |
             ~/OrangeFox/fox_12.1/out/target/product/corvette/recovery.img
             ~/OrangeFox/fox_12.1/out/target/product/corvette/OrangeFox*.img
