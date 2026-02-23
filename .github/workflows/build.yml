@@ -14,7 +14,7 @@ jobs:
       checks: write
 
     steps:
-      - name: 1. 清理磁盘空间
+      - name: 1. 清理磁盘空间（编译必备）
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /var/cache/apt/archives/*
           sudo apt autoremove -y && sudo apt clean
@@ -49,12 +49,24 @@ jobs:
           cd sync
           ./orangefox_sync.sh --branch 12.1 --path ~/OrangeFox/fox_12.1
 
-      - name: 6. 克隆指定设备树（haotaer仓库）
+      - name: 6. 克隆设备树并修复配置（关键步骤）
         run: |
           cd ~/OrangeFox/fox_12.1
-          # 克隆默认分支，避免指定不存在的main分支
+          # 克隆设备树
           git clone https://github.com/haotaer/OnePlusAce3Pro-orangefox-Rec.git device/oneplus/corvette
-          ls -l device/oneplus/corvette
+          # 修复1：创建缺失的 vendorsetup.sh（添加编译项）
+          cat > device/oneplus/corvette/vendorsetup.sh << EOF
+          # 定义橙狐编译变量
+          export FOX_BUILD_DEVICE="corvette"
+          export OF_FORCE_PREBUILT_KERNEL=1
+          # 添加编译午餐组合
+          add_lunch_combo orangefox_corvette-eng
+          EOF
+          # 修复2：修正 AndroidProducts.mk 中的 mk 文件名（仓库中是 twrp_corvette.mk）
+          sed -i 's/corvette.mk/twrp_corvette.mk/' device/oneplus/corvette/AndroidProducts.mk
+          # 检查修复结果
+          ls -l device/oneplus/corvette/
+          cat device/oneplus/corvette/AndroidProducts.mk
 
       - name: 7. 开始编译 OrangeFox Recovery
         run: |
