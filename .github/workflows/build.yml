@@ -49,20 +49,12 @@ jobs:
           cd sync
           ./orangefox_sync.sh --branch 12.1 --path ~/OrangeFox/fox_12.1
 
-      - name: 6. 克隆设备树并修复配置（关键步骤）
+      - name: 6. 克隆设备树并修复配置
         run: |
           cd ~/OrangeFox/fox_12.1
           # 克隆设备树
           git clone https://github.com/haotaer/OnePlusAce3Pro-orangefox-Rec.git device/oneplus/corvette
-          # 修复1：重写 vendorsetup.sh，只保留最精简的环境变量，避免任何可能的语法或函数冲突
-          cat > device/oneplus/corvette/vendorsetup.sh << 'EOF'
-          #!/bin/bash
-          # 定义橙狐编译变量
-          export FOX_BUILD_DEVICE="corvette"
-          export OF_FORCE_PREBUILT_KERNEL=1
-          export ALLOW_MISSING_DEPENDENCIES=true
-          EOF
-          # 修复2：重写 AndroidProducts.mk，确保路径和 lunch 选项完全正确
+          # 重写 AndroidProducts.mk，确保路径和 lunch 选项完全正确
           cat > device/oneplus/corvette/AndroidProducts.mk << 'EOF'
           # Copyright (C) 2024 The Android Open Source Project
           # SPDX-License-Identifier: Apache-2.0
@@ -71,40 +63,27 @@ jobs:
           COMMON_LUNCH_CHOICES := \
               orangefox_corvette-eng
           EOF
-          # 修复3：给脚本加上执行权限
-          chmod +x device/oneplus/corvette/vendorsetup.sh
-          # 调试：打印文件内容，确认修复成功
-          echo "=== vendorsetup.sh ==="
-          cat device/oneplus/corvette/vendorsetup.sh
+          # 调试：打印文件内容
           echo "=== AndroidProducts.mk ==="
           cat device/oneplus/corvette/AndroidProducts.mk
           echo "=== 目录结构 ==="
           ls -la device/oneplus/corvette/
 
-      - name: 7. 调试：手动执行 vendorsetup.sh 并打印详细错误
+      - name: 7. 开始编译 OrangeFox Recovery（绕过 vendorsetup.sh）
         run: |
           cd ~/OrangeFox/fox_12.1
-          # 开启调试模式，打印执行过程
-          set -x
-          # 手动执行脚本，捕获详细错误
-          source device/oneplus/corvette/vendorsetup.sh
-          echo "FOX_BUILD_DEVICE: $FOX_BUILD_DEVICE"
-          echo "OF_FORCE_PREBUILT_KERNEL: $OF_FORCE_PREBUILT_KERNEL"
-          set +x
-
-      - name: 8. 开始编译 OrangeFox Recovery
-        run: |
-          cd ~/OrangeFox/fox_12.1
+          # 手动导出所有必要的编译变量，彻底绕过 vendorsetup.sh
+          export FOX_BUILD_DEVICE="corvette"
+          export OF_FORCE_PREBUILT_KERNEL=1
+          export ALLOW_MISSING_DEPENDENCIES=true
+          # 加载编译环境
           source build/envsetup.sh
-          # 调试：打印所有可用的 lunch 选项
-          echo "=== 可用 lunch 选项 ==="
-          lunch
           # 选择 lunch 并编译
           lunch orangefox_corvette-eng
           make clean
           make recoveryimage -j4
 
-      - name: 9. 上传编译产物
+      - name: 8. 上传编译产物
         uses: actions/upload-artifact@v4
         if: success()
         with:
